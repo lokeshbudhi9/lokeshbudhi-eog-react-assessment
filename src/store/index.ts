@@ -15,6 +15,6 @@ export default () => {
   const store = createStore(reducer, composeEnhancers(middlewares));
 
   sagaMiddleware.run(sagas);
-
+  console.log(store, "the store")
   return store;
 };
