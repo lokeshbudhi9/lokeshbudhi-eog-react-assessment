@@ -7,6 +7,7 @@ import filter from 'lodash/filter';
 import find from 'lodash/find';
 import MetricsSelect from '../components/MetricsSelect';
 import {makeStyles} from '@material-ui/core/styles'
+import { Snackbar } from '@material-ui/core';
 
 
 const useStyles = makeStyles(()=>({
@@ -21,6 +22,16 @@ graphData:{
   height: '90%',
   margin:'auto',
   backgroundColor:'white'
+},
+reponseError:{
+  backgroundColor : '#FBE9E8',
+  color: '#AC231A',
+  fontSize: '17px',
+  fontWeight:"bold",
+  display:'flex',
+  flexDirection:'row',
+  flexWrap:'noWrap',
+  alignItems:'flex-start'
 }
 }));
 
@@ -30,6 +41,9 @@ const METRIC_COLORS = ['#ff9292', '#583d72', '#0a043c', '#ec4646', '#493323', '#
 
 const Dashboard = () => {
   const classes = useStyles();
+  const [isSnackOpen, setIsSnackOpen] = useState(true);
+  const [severity, setSeverity] =useState('');
+  const [message, setMessage] = useState('');
   const [selectedMetrics, setSelectedMetrics] = useState([]);
   const [getMeasurementsQuery, { data: allMetricsData, called, error }] = useLazyQuery(GET_MULTIPLE_MEASUREMENTS, {
     variables: {
@@ -59,7 +73,11 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    setIsSnackOpen(true)
+    setMessage('Something Went Wrong, developers are actively working on the fix')
+    setSeverity('error')
     console.log(error);
+
   }, [error]);
 
   useEffect(() => {
@@ -90,8 +108,29 @@ const Dashboard = () => {
     }
   }, [allMetricsData]);
 
+const handleResponseClose = (event, reason) =>
+{
+  if(reason === 'clickaway') {
+    return;
+  }
+  setIsSnackOpen(false);
+};
+
   return (
+
     <div className = {classes.root} >
+    <Snackbar anchorOrigin ={{vertical:'top', horizontal:'right'}}  
+    ContentProps ={{
+      classes: {
+        root:
+        severity === 'error' ? classes.reponseError : false
+      }
+    }}
+    open ={isSnackOpen}
+    onClose ={handleResponseClose}
+    autoHideDuration ={10000} 
+    message ={message}
+    />
       <MetricsSelect {...{ selectedMetrics, setSelectedMetrics }} />
       <div className = {classes.graphData}>
         {graphData.length ? (
