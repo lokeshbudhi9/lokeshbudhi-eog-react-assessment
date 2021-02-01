@@ -41,7 +41,7 @@ const METRIC_COLORS = ['#ff9292', '#583d72', '#0a043c', '#ec4646', '#493323', '#
 
 const Dashboard = () => {
   const classes = useStyles();
-  const [isSnackOpen, setIsSnackOpen] = useState(true);
+  const [isSnackOpen, setIsSnackOpen] = useState(false);
   const [severity, setSeverity] =useState('');
   const [message, setMessage] = useState('');
   const [selectedMetrics, setSelectedMetrics] = useState([]);
