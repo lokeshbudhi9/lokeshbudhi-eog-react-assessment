@@ -27,17 +27,17 @@ const theme = createMuiTheme({
 });
 
 const App = () => (
-  <ApolloProvider client={apolloClient}> 
-  <MuiThemeProvider theme={theme}>
-    <CssBaseline />
-    <Provider store={store}>
-      <Wrapper>
-        <Header />
-        <Dashboard />
-        <ToastContainer />
-      </Wrapper>
-    </Provider>
-  </MuiThemeProvider>
+  <ApolloProvider client={apolloClient}>
+    <MuiThemeProvider theme={theme}>
+      <CssBaseline />
+      <Provider store={store}>
+        <Wrapper>
+          <Header />
+          <Dashboard />
+          <ToastContainer />
+        </Wrapper>
+      </Provider>
+    </MuiThemeProvider>
   </ApolloProvider>
 );
 
