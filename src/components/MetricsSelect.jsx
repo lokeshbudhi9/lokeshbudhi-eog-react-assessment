@@ -4,8 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { GET_METRICS } from '../graphql/queries';
 
 const MetricsSelect = ({ selectedMetrics, setSelectedMetrics }) => {
-  const { data } = useQuery(GET_METRICS);
+  const { data, error } = useQuery(GET_METRICS);
   const [allMertrics, setAllMetrics] = useState([]);
+
+  useEffect(() => {
+    console.log(error);
+  }, [error]);
 
   useEffect(() => {
     if (data) {

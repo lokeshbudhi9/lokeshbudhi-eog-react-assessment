@@ -13,7 +13,7 @@ const METRIC_COLORS = ['#ff9292', '#583d72', '#0a043c', '#ec4646', '#493323', '#
 
 const Dashboard = () => {
   const [selectedMetrics, setSelectedMetrics] = useState([]);
-  const [getMeasurementsQuery, { data: allMetricsData, called }] = useLazyQuery(GET_MULTIPLE_MEASUREMENTS, {
+  const [getMeasurementsQuery, { data: allMetricsData, called, error }] = useLazyQuery(GET_MULTIPLE_MEASUREMENTS, {
     variables: {
       input: selectedMetrics.map(metric => ({
         metricName: metric,
@@ -39,6 +39,10 @@ const Dashboard = () => {
       getMeasurementsQuery();
     }
   }, []);
+
+  useEffect(() => {
+    console.log(error);
+  }, [error]);
 
   useEffect(() => {
     if (allMetricsData) {
