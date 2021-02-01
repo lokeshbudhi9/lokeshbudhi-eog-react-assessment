@@ -1,20 +1,17 @@
-import {gql} from '@apollo/client';
+import { gql } from '@apollo/client';
 
 const GET_MULTIPLE_MEASUREMENTS = gql`
   query GetMultipleMeasurements($input: [MeasurementQuery]) {
     getMultipleMeasurements(input: $input) {
+      metric
+      measurements {
+        at
+        value
         metric
-        measurements {
-          at
-          value
-          metric
-          unit
-        }
+        unit
+      }
     }
   }
 `;
-  
-export {
-    GET_MULTIPLE_MEASUREMENTS
-}
 
+export { GET_MULTIPLE_MEASUREMENTS };
