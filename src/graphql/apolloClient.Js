@@ -1,6 +1,6 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client';
 
 export const client = new ApolloClient({
-  uri: 'TODO: ENTER BASE URL HERE',
+  uri: 'https://react.eogresources.com/graphql',
   cache: new InMemoryCache()
 });
