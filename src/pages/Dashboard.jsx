@@ -6,12 +6,30 @@ import { format, subMinutes } from 'date-fns';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
 import MetricsSelect from '../components/MetricsSelect';
+import {makeStyles} from '@material-ui/core/styles'
+
+
+const useStyles = makeStyles(()=>({
+root:{
+  width: '90%',
+  height: '90%',
+  margin:'auto',
+  backgroundColor:'white'
+},
+graphData:{
+  width: '90%',
+  height: '90%',
+  margin:'auto',
+  backgroundColor:'white'
+}
+}));
 
 const timeStampBefore20Mins = subMinutes(new Date(), 20).getTime();
 
 const METRIC_COLORS = ['#ff9292', '#583d72', '#0a043c', '#ec4646', '#493323', '#ffe227'];
 
 const Dashboard = () => {
+  const classes = useStyles();
   const [selectedMetrics, setSelectedMetrics] = useState([]);
   const [getMeasurementsQuery, { data: allMetricsData, called, error }] = useLazyQuery(GET_MULTIPLE_MEASUREMENTS, {
     variables: {
@@ -73,9 +91,9 @@ const Dashboard = () => {
   }, [allMetricsData]);
 
   return (
-    <div style={{ width: '90%', height: '90%', margin: 'auto', backgroundColor: 'white' }}>
+    <div className = {classes.root} >
       <MetricsSelect {...{ selectedMetrics, setSelectedMetrics }} />
-      <div style={{ width: '90%', height: '90%', margin: 'auto', backgroundColor: 'white' }}>
+      <div className = {classes.graphData}>
         {graphData.length ? (
           <ResponsiveContainer>
             <LineChart width={600} height={300} data={graphData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
