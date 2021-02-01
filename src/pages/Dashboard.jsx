@@ -30,7 +30,7 @@ const Dashboard = () => {
   };
 
   const formattedTooltipLabel = value => {
-    const formattedTick = format(new Date(value), 'mm');
+    const formattedTick = format(new Date(value), 'MMM dd, HH:mm');
     return formattedTick;
   };
 
