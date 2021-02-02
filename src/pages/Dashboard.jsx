@@ -1,38 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import { GET_MULTIPLE_MEASUREMENTS } from '../graphql/queries';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, subMinutes } from 'date-fns';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
 import MetricsSelect from '../components/MetricsSelect';
-import {makeStyles} from '@material-ui/core/styles'
+import { makeStyles } from '@material-ui/core/styles';
 import { Snackbar } from '@material-ui/core';
 
-
-const useStyles = makeStyles(()=>({
-root:{
-  width: '90%',
-  height: '90%',
-  margin:'auto',
-  backgroundColor:'white'
-},
-graphData:{
-  width: '90%',
-  height: '90%',
-  margin:'auto',
-  backgroundColor:'white'
-},
-reponseError:{
-  backgroundColor : '#FBE9E8',
-  color: '#AC231A',
-  fontSize: '17px',
-  fontWeight:"bold",
-  display:'flex',
-  flexDirection:'row',
-  flexWrap:'noWrap',
-  alignItems:'flex-start'
-}
+const useStyles = makeStyles(() => ({
+  root: {
+    width: '90%',
+    height: '90%',
+    margin: 'auto',
+    backgroundColor: 'white',
+  },
+  graphData: {
+    width: '90%',
+    height: '90%',
+    margin: 'auto',
+    backgroundColor: 'white',
+  },
+  reponseError: {
+    backgroundColor: '#FBE9E8',
+    color: '#AC231A',
+    fontSize: '17px',
+    fontWeight: 'bold',
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'noWrap',
+    alignItems: 'flex-start',
+  },
 }));
 
 const timeStampBefore20Mins = subMinutes(new Date(), 20).getTime();
@@ -42,7 +41,7 @@ const METRIC_COLORS = ['#ff9292', '#583d72', '#0a043c', '#ec4646', '#493323', '#
 const Dashboard = () => {
   const classes = useStyles();
   const [isSnackOpen, setIsSnackOpen] = useState(false);
-  const [severity, setSeverity] =useState('');
+  const [severity, setSeverity] = useState('');
   const [message, setMessage] = useState('');
   const [selectedMetrics, setSelectedMetrics] = useState([]);
   const [getMeasurementsQuery, { data: allMetricsData, called, error }] = useLazyQuery(GET_MULTIPLE_MEASUREMENTS, {
@@ -72,12 +71,22 @@ const Dashboard = () => {
     }
   }, []);
 
+  // Side effect for auto Subscription for auto updating the metrics
   useEffect(() => {
-    setIsSnackOpen(true)
-    setMessage('Something Went Wrong, developers are actively working on the fix')
-    setSeverity('error')
-    console.log(error);
+    const metricsSubscription = () => {
+      console.log('Auto metrics subscription');
+      getMeasurementsQuery();
+    };
+    setInterval(metricsSubscription, 1.3 * 1000);
+  }, [getMeasurementsQuery]);
 
+  useEffect(() => {
+    if (error) {
+      setIsSnackOpen(true);
+      setMessage('Something Went Wrong, developers are actively working on the fix');
+      setSeverity('error');
+      console.log(error);
+    }
   }, [error]);
 
   useEffect(() => {
@@ -108,31 +117,29 @@ const Dashboard = () => {
     }
   }, [allMetricsData]);
 
-const handleResponseClose = (event, reason) =>
-{
-  if(reason === 'clickaway') {
-    return;
-  }
-  setIsSnackOpen(false);
-};
+  const handleResponseClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setIsSnackOpen(false);
+  };
 
   return (
-
-    <div className = {classes.root} >
-    <Snackbar anchorOrigin ={{vertical:'top', horizontal:'right'}}  
-    ContentProps ={{
-      classes: {
-        root:
-        severity === 'error' ? classes.reponseError : false
-      }
-    }}
-    open ={isSnackOpen}
-    onClose ={handleResponseClose}
-    autoHideDuration ={10000} 
-    message ={message}
-    />
+    <div className={classes.root}>
+      <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        ContentProps={{
+          classes: {
+            root: severity === 'error' ? classes.reponseError : false,
+          },
+        }}
+        open={isSnackOpen}
+        onClose={handleResponseClose}
+        autoHideDuration={10000}
+        message={message}
+      />
       <MetricsSelect {...{ selectedMetrics, setSelectedMetrics }} />
-      <div className = {classes.graphData}>
+      <div className={classes.graphData}>
         {graphData.length ? (
           <ResponsiveContainer>
             <LineChart width={600} height={300} data={graphData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
