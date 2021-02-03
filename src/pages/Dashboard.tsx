@@ -8,8 +8,9 @@ import find from 'lodash/find';
 import MetricsSelect from '../components/MetricsSelect';
 import { makeStyles } from '@material-ui/core/styles';
 import { Snackbar } from '@material-ui/core';
+import { FormattedMeasurement, Measurement, MetricDataSet } from '../helpers/entities';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   root: {
     width: '90%',
     height: '90%',
@@ -29,10 +30,10 @@ const useStyles = makeStyles(() => ({
     fontWeight: 'bold',
     display: 'flex',
     flexDirection: 'row',
-    flexWrap: 'noWrap',
+    flexWrap: 'nowrap',
     alignItems: 'flex-start',
   },
-}));
+});
 
 const timeStampBefore20Mins = subMinutes(new Date(), 20).getTime();
 
@@ -43,7 +44,7 @@ const Dashboard = () => {
   const [isSnackOpen, setIsSnackOpen] = useState(false);
   const [severity, setSeverity] = useState('');
   const [message, setMessage] = useState('');
-  const [selectedMetrics, setSelectedMetrics] = useState([]);
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
   const [getMeasurementsQuery, { data: allMetricsData, called, error }] = useLazyQuery(GET_MULTIPLE_MEASUREMENTS, {
     variables: {
       input: selectedMetrics.map(metric => ({
@@ -53,14 +54,14 @@ const Dashboard = () => {
     },
   });
 
-  const [graphData, setGraphData] = useState([]);
+  const [graphData, setGraphData] = useState<FormattedMeasurement[]>([]);
 
-  const formattedXaxisTick = value => {
+  const formattedXaxisTick = (value: string) => {
     const formattedTick = format(new Date(value), 'HH:mm');
     return formattedTick;
   };
 
-  const formattedTooltipLabel = value => {
+  const formattedTooltipLabel = (value: string) => {
     const formattedTick = format(new Date(value), 'MMM dd, HH:mm');
     return formattedTick;
   };
@@ -91,13 +92,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (allMetricsData) {
-      let formattedData = [];
-      allMetricsData.getMultipleMeasurements.forEach(dataSet => {
-        dataSet.measurements.forEach(measurement => {
+      let formattedData: FormattedMeasurement[] = [];
+      allMetricsData.getMultipleMeasurements.forEach((dataSet: MetricDataSet) => {
+        dataSet.measurements.forEach((measurement: Measurement) => {
           const existingObj = find(formattedData, { at: measurement.at });
           if (existingObj) {
             formattedData = [
-              ...filter(formattedData, data => data.at !== measurement.at),
+              ...filter(formattedData, (data: FormattedMeasurement) => data.at !== measurement.at),
               {
                 ...existingObj,
                 [measurement.metric]: measurement.value,
@@ -117,7 +118,7 @@ const Dashboard = () => {
     }
   }, [allMetricsData]);
 
-  const handleResponseClose = (event, reason) => {
+  const handleResponseClose = (event: any, reason: string) => {
     if (reason === 'clickaway') {
       return;
     }
@@ -130,7 +131,7 @@ const Dashboard = () => {
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         ContentProps={{
           classes: {
-            root: severity === 'error' ? classes.reponseError : false,
+            root: severity === 'error' ? classes.reponseError : undefined,
           },
         }}
         open={isSnackOpen}

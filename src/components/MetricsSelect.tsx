@@ -1,11 +1,17 @@
 import { useQuery } from '@apollo/client';
 import { Chip, FormControl, Input, InputLabel, MenuItem, Select } from '@material-ui/core';
-import React, { useEffect, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { GET_METRICS } from '../graphql/queries';
 
-const MetricsSelect = ({ selectedMetrics, setSelectedMetrics }) => {
+const MetricsSelect = ({
+  selectedMetrics,
+  setSelectedMetrics,
+}: {
+  selectedMetrics: string[];
+  setSelectedMetrics: Dispatch<SetStateAction<string[]>>;
+}) => {
   const { data, error } = useQuery(GET_METRICS);
-  const [allMertrics, setAllMetrics] = useState([]);
+  const [allMertrics, setAllMetrics] = useState<string[]>([]);
 
   useEffect(() => {
     console.log(error);
@@ -17,7 +23,7 @@ const MetricsSelect = ({ selectedMetrics, setSelectedMetrics }) => {
     }
   }, [data]);
 
-  const handleChange = event => {
+  const handleChange = (event: any) => {
     setSelectedMetrics(event.target.value);
   };
 
@@ -30,9 +36,9 @@ const MetricsSelect = ({ selectedMetrics, setSelectedMetrics }) => {
           value={selectedMetrics}
           onChange={handleChange}
           input={<Input id="select-multiple-chip" />}
-          renderValue={selected => (
+          renderValue={(selected: any) => (
             <div>
-              {selected.map(value => (
+              {selected.map((value: string) => (
                 <Chip key={value} label={value} />
               ))}
             </div>
