@@ -5,24 +5,29 @@ import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContai
 import { format, subMinutes } from 'date-fns';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
+import get from 'lodash/get';
 import MetricsSelect from '../components/MetricsSelect';
 import { makeStyles } from '@material-ui/core/styles';
 import { Snackbar } from '@material-ui/core';
 import { FormattedMeasurement, Measurement, MetricDataSet } from '../helpers/entities';
 import { SUBSCRIBE_TO_NEW_MEASUREMENT } from '../graphql/subscriptions';
+import { differenceInMilliseconds } from 'date-fns/esm';
+import LatestMeasurement from '../components/LatestMeasurement';
 
 const useStyles = makeStyles({
   root: {
     width: '90%',
     height: '90%',
     margin: 'auto',
-    backgroundColor: 'white',
   },
   graphData: {
     width: '90%',
     height: '90%',
     margin: 'auto',
-    backgroundColor: 'white',
+  },
+  latestContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
   },
   reponseError: {
     backgroundColor: '#FBE9E8',
@@ -46,6 +51,7 @@ const Dashboard = () => {
   const [severity, setSeverity] = useState('');
   const [message, setMessage] = useState('');
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+  const [latestData, setLatestData] = useState<any>({});
 
   const [getMeasurementsQuery, { data: allMetricsData, called, error }] = useLazyQuery(GET_MULTIPLE_MEASUREMENTS, {
     variables: {
@@ -76,20 +82,27 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Side effect for auto Subscription for auto updating the metrics
   useEffect(() => {
-    if (newMeasurementData && selectedMetrics.length) {
+    if (newMeasurementData && selectedMetrics.length && graphData.length) {
       const {
         newMeasurement: { at, metric, value, unit },
       } = newMeasurementData;
-      setGraphData((prev: any) => [
+      setLatestData((prev: any) => ({
         ...prev,
-        {
-          at,
-          [metric]: value,
-          [`${metric}Unit`]: unit,
-        },
-      ]);
+        [metric]: { at, metric, value, unit },
+      }));
+      const isMoreThanOneSecond = differenceInMilliseconds(new Date(at), new Date(graphData[graphData.length - 1].at));
+      if (isMoreThanOneSecond >= 500) {
+        setGraphData((prev: FormattedMeasurement[]) => [
+          ...prev,
+          {
+            at,
+            [metric]: value,
+            [`${metric}Unit`]: unit,
+            metric,
+          },
+        ]);
+      }
     }
   }, [newMeasurementData]);
 
@@ -115,6 +128,7 @@ const Dashboard = () => {
                 ...existingObj,
                 [measurement.metric]: measurement.value,
                 [`${measurement.metric}Unit`]: measurement.unit,
+                metric: measurement.metric,
               },
             ];
           } else {
@@ -122,6 +136,7 @@ const Dashboard = () => {
               at: measurement.at,
               [measurement.metric]: measurement.value,
               [`${measurement.metric}Unit`]: measurement.unit,
+              metric: measurement.metric,
             });
           }
         });
@@ -152,6 +167,14 @@ const Dashboard = () => {
         message={message}
       />
       <MetricsSelect {...{ selectedMetrics, setSelectedMetrics }} />
+      <div className={classes.latestContainer}>
+        {selectedMetrics.map((metric: string) => (
+          <LatestMeasurement
+            metric={metric}
+            value={`${get(latestData, `${metric}.value`, '')} ${get(latestData, `${metric}.unit`, '')}`}
+          />
+        ))}
+      </div>
       <div className={classes.graphData}>
         {graphData.length ? (
           <ResponsiveContainer>
@@ -164,13 +187,14 @@ const Dashboard = () => {
                   type="monotone"
                   dataKey={metric}
                   stroke={METRIC_COLORS[index]}
+                  isAnimationActive={false}
                 />
               ))}
               <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
               <XAxis
                 dataKey="at"
                 tickFormatter={formattedXaxisTick}
-                interval={100}
+                minTickGap={100}
                 domain={[(dataMin: any) => 0 - Math.abs(dataMin), (dataMax: any) => dataMax * 2]}
               />
               {selectedMetrics.map(metric => (
@@ -181,7 +205,7 @@ const Dashboard = () => {
                   style={{ marginLeft: 20 }}
                 />
               ))}
-              <Tooltip labelFormatter={formattedTooltipLabel} label="test" />
+              <Tooltip labelFormatter={formattedTooltipLabel} />
             </LineChart>
           </ResponsiveContainer>
         ) : null}
