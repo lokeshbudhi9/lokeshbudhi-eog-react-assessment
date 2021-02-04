@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLazyQuery } from '@apollo/client';
+import { useLazyQuery, useSubscription } from '@apollo/client';
 import { GET_MULTIPLE_MEASUREMENTS } from '../graphql/queries';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, subMinutes } from 'date-fns';
@@ -9,6 +9,7 @@ import MetricsSelect from '../components/MetricsSelect';
 import { makeStyles } from '@material-ui/core/styles';
 import { Snackbar } from '@material-ui/core';
 import { FormattedMeasurement, Measurement, MetricDataSet } from '../helpers/entities';
+import { SUBSCRIBE_TO_NEW_MEASUREMENT } from '../graphql/subscriptions';
 
 const useStyles = makeStyles({
   root: {
@@ -45,6 +46,7 @@ const Dashboard = () => {
   const [severity, setSeverity] = useState('');
   const [message, setMessage] = useState('');
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+
   const [getMeasurementsQuery, { data: allMetricsData, called, error }] = useLazyQuery(GET_MULTIPLE_MEASUREMENTS, {
     variables: {
       input: selectedMetrics.map(metric => ({
@@ -54,6 +56,8 @@ const Dashboard = () => {
     },
   });
 
+  const { data: newMeasurementData } = useSubscription<{ newMeasurement: Measurement }>(SUBSCRIBE_TO_NEW_MEASUREMENT);
+
   const [graphData, setGraphData] = useState<FormattedMeasurement[]>([]);
 
   const formattedXaxisTick = (value: string) => {
@@ -62,7 +66,7 @@ const Dashboard = () => {
   };
 
   const formattedTooltipLabel = (value: string) => {
-    const formattedTick = format(new Date(value), 'MMM dd, HH:mm');
+    const formattedTick = format(new Date(value), 'MMM dd, HH:mm:ss');
     return formattedTick;
   };
 
@@ -74,12 +78,20 @@ const Dashboard = () => {
 
   // Side effect for auto Subscription for auto updating the metrics
   useEffect(() => {
-    const metricsSubscription = () => {
-      console.log('Auto metrics subscription');
-      getMeasurementsQuery();
-    };
-    setInterval(metricsSubscription, 1.3 * 1000);
-  }, [getMeasurementsQuery]);
+    if (newMeasurementData && selectedMetrics.length) {
+      const {
+        newMeasurement: { at, metric, value, unit },
+      } = newMeasurementData;
+      setGraphData((prev: any) => [
+        ...prev,
+        {
+          at,
+          [metric]: value,
+          [`${metric}Unit`]: unit,
+        },
+      ]);
+    }
+  }, [newMeasurementData]);
 
   useEffect(() => {
     if (error) {
