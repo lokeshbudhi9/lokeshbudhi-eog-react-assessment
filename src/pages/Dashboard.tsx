@@ -155,7 +155,7 @@ const Dashboard = () => {
       <div className={classes.graphData}>
         {graphData.length ? (
           <ResponsiveContainer>
-            <LineChart width={600} height={300} data={graphData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+            <LineChart data={graphData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
               {selectedMetrics.map((metric, index) => (
                 <Line
                   dot={false}
@@ -167,7 +167,12 @@ const Dashboard = () => {
                 />
               ))}
               <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-              <XAxis dataKey="at" tickFormatter={formattedXaxisTick} minTickGap={100} />
+              <XAxis
+                dataKey="at"
+                tickFormatter={formattedXaxisTick}
+                interval={100}
+                domain={[(dataMin: any) => 0 - Math.abs(dataMin), (dataMax: any) => dataMax * 2]}
+              />
               {selectedMetrics.map(metric => (
                 <YAxis
                   yAxisId={metric}
